@@ -249,6 +249,26 @@
 
   .copy-note { color: var(--dim); font-size: 12px; margin-top: 8px; min-height: 1.2em; }
 
+  .share-row { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .share-row .btn-share {
+    flex: 1 1 120px;
+    display: block;
+    text-align: center;
+    padding: 12px 8px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .share-row .btn-share:hover, .share-row .btn-share:focus-visible {
+    border-color: var(--phosphor);
+    color: #e4f0e0;
+    outline: none;
+  }
+
   footer {
     margin-top: 56px;
     color: var(--dim);
@@ -329,6 +349,12 @@
     </div>
 
     <button class="btn-start" id="btn-link">COPIAR LINK (tira o print e vai postar)</button>
+    <div class="share-row">
+      <a class="btn-share" id="share-x" target="_blank" rel="noopener">tuitar isso</a>
+      <a class="btn-share" id="share-wa" target="_blank" rel="noopener">whatsapp</a>
+      <a class="btn-share" id="share-tg" target="_blank" rel="noopener">telegram</a>
+      <button class="btn-share" id="btn-native" hidden>compartilhar…</button>
+    </div>
     <p class="copy-note" id="copy-note"></p>
     <button class="btn-ghost" id="btn-copy">copiar resultado em texto (ascii raiz)</button>
     <button class="btn-ghost" id="btn-restart">rodar de novo (dessa vez sem mentir)</button>
@@ -550,16 +576,31 @@
     }
   }
 
+  function shareText() {
+    if (!lastResult) return "HACKER COMPASS: o quão hacker de verdade você é?";
+    var r = lastResult;
+    return "meu veredito no HACKER COMPASS: " + r.v.title +
+      " (livre/monetiza " + (r.nx >= 0 ? "+" : "") + Math.round(r.nx * 10) +
+      " | skill/postura " + (r.ny >= 0 ? "+" : "") + Math.round(r.ny * 10) + ")";
+  }
+
   function copyLink() {
-    var txt = PAGE_URL;
-    if (lastResult) {
-      var r = lastResult;
-      txt = "meu veredito no HACKER COMPASS: " + r.v.title + "\n" +
-        "livre/monetiza: " + (r.nx >= 0 ? "+" : "") + Math.round(r.nx * 10) +
-        " | skill/postura: " + (r.ny >= 0 ? "+" : "") + Math.round(r.ny * 10) + "\n" +
-        PAGE_URL;
+    copyToClipboard(shareText() + "\n" + PAGE_URL, "link copiado. tira o print e vai postar.");
+  }
+
+  function updateShareLinks() {
+    var t = encodeURIComponent(shareText());
+    var u = encodeURIComponent(PAGE_URL);
+    $("share-x").href = "https://x.com/intent/post?text=" + t + "&url=" + u;
+    $("share-wa").href = "https://wa.me/?text=" + t + "%0A" + u;
+    $("share-tg").href = "https://t.me/share/url?url=" + u + "&text=" + t;
+    var nb = $("btn-native");
+    if (navigator.share) {
+      nb.hidden = false;
+      nb.onclick = function () {
+        navigator.share({ title: "Hacker Compass", text: shareText(), url: PAGE_URL }).catch(function () {});
+      };
     }
-    copyToClipboard(txt, "link copiado. tira o print e vai postar.");
   }
 
   function startQuiz() {
@@ -651,6 +692,7 @@
     renderBar("bar-x", "val-x", nx, "livre", "monetiza");
     renderBar("bar-y", "val-y", ny, "postura", "skill");
     $("copy-note").textContent = "";
+    updateShareLinks();
   }
 
   function renderBar(barId, valId, n, negLabel, posLabel) {
