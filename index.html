@@ -498,6 +498,16 @@
     maxX += mx; maxY += my;
   });
 
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  var deck = [];
   var idx = 0, sumX = 0, sumY = 0, done = false;
   var $ = function (id) { return document.getElementById(id); };
 
@@ -553,13 +563,16 @@
   }
 
   function startQuiz() {
+    deck = shuffle(QUESTIONS).map(function (q) {
+      return { q: q.q, a: shuffle(q.a) };
+    });
     $("intro").classList.add("hidden");
     $("quiz").classList.remove("hidden");
     renderQuestion();
   }
 
   function renderQuestion() {
-    var q = QUESTIONS[idx];
+    var q = deck[idx];
     $("qcount").textContent = "[ pergunta " + (idx + 1) + "/" + QUESTIONS.length + " ]";
     var filled = Math.round((idx / QUESTIONS.length) * 24);
     $("qprogress").textContent = "█".repeat(filled) + "░".repeat(24 - filled);
