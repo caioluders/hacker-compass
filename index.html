@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hacker Compass — o teste definitivo</title>
+<meta name="description" content="O quão hacker de verdade você é? 12 perguntas, 4 quadrantes: hacker, profissional de sec, noob ou charlatão. Paródia baseada em uma treta real.">
+<meta property="og:title" content="Hacker Compass — o teste definitivo">
+<meta property="og:description" content="Hacker, profissional de sec, noob ou charlatão? Descubra sua coordenada exata na treta.">
+<meta property="og:url" content="https://lude.rs/hacker-compass/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>
+  :root {
+    --bg: #0a0e0a;
+    --panel: #101710;
+    --line: #223022;
+    --text: #b8c9b4;
+    --dim: #6d7f6a;
+    --phosphor: #4af626;
+    --q-raiz: #4af626;
+    --q-prof: #3b9eff;
+    --q-noob: #ffc24a;
+    --q-char: #ff4ae0;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0.18) 3px
+    );
+    z-index: 2;
+  }
+
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 32px 16px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  pre.masthead {
+    color: var(--phosphor);
+    text-shadow: 0 0 8px rgba(74, 246, 38, 0.35);
+    font-size: clamp(7px, 1.9vw, 13px);
+    line-height: 1.35;
+    overflow-x: auto;
+    margin: 0 0 8px;
+    text-align: center;
+  }
+
+  .tagline {
+    text-align: center;
+    color: var(--dim);
+    font-size: 13px;
+    margin-bottom: 40px;
+  }
+  .tagline em { color: var(--text); font-style: normal; }
+
+  .rule {
+    color: var(--line);
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 28px 0;
+    user-select: none;
+  }
+
+  /* ---- intro ---- */
+  .intro p { margin: 0 0 16px; }
+  .intro .prompt-line { color: var(--dim); }
+  .axes-legend {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 16px;
+    margin: 24px 0;
+    font-size: 13px;
+  }
+  .axes-legend b { color: var(--phosphor); font-weight: 700; }
+  .axes-legend .lg-row { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+  .chip { padding: 1px 8px; border: 1px solid; font-size: 12px; }
+  .chip.raiz { color: var(--q-raiz); border-color: var(--q-raiz); }
+  .chip.prof { color: var(--q-prof); border-color: var(--q-prof); }
+  .chip.noob { color: var(--q-noob); border-color: var(--q-noob); }
+  .chip.char { color: var(--q-char); border-color: var(--q-char); }
+
+  button {
+    font-family: var(--mono);
+    font-size: 15px;
+    cursor: pointer;
+  }
+
+  .btn-start, .btn-ghost {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background: var(--phosphor);
+    color: #06210a;
+    border: none;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .btn-start:hover { filter: brightness(1.15); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--dim);
+    border: 1px solid var(--line);
+    font-weight: 400;
+    margin-top: 10px;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--dim); }
+
+  /* ---- quiz ---- */
+  .qmeta {
+    display: flex;
+    justify-content: space-between;
+    color: var(--dim);
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .progress {
+    color: var(--phosphor);
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .question {
+    font-size: 19px;
+    font-weight: 700;
+    color: #e4f0e0;
+    margin: 0 0 24px;
+    text-wrap: balance;
+  }
+  .question::before { content: "> "; color: var(--phosphor); }
+
+  .answers { display: flex; flex-direction: column; gap: 10px; }
+  .answer {
+    text-align: left;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 14px;
+    line-height: 1.5;
+    display: flex;
+    gap: 10px;
+  }
+  .answer .key { color: var(--dim); flex-shrink: 0; }
+  .answer:hover, .answer:focus-visible {
+    border-color: var(--phosphor);
+    color: #e4f0e0;
+    outline: none;
+  }
+  .answer:hover .key, .answer:focus-visible .key { color: var(--phosphor); }
+  .answer.picked {
+    border-color: var(--phosphor);
+    background: rgba(74, 246, 38, 0.08);
+  }
+  .hint { color: var(--dim); font-size: 12px; margin-top: 22px; }
+
+  /* ---- result ---- */
+  .verdict-label { color: var(--dim); font-size: 13px; }
+  .verdict {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 4px 0 10px;
+    text-wrap: balance;
+  }
+  .verdict-desc { margin: 0 0 26px; }
+
+  .compass-box {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 18px;
+    margin-bottom: 22px;
+  }
+  .compass-grid {
+    position: relative;
+    aspect-ratio: 1;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .quad {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    display: flex;
+    align-items: flex-start;
+    padding: 8px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .quad.raiz { top: 0; left: 0; background: rgba(74,246,38,.10); color: var(--q-raiz); }
+  .quad.prof { top: 0; right: 0; background: rgba(59,158,255,.10); color: var(--q-prof); justify-content: flex-end; text-align: right; }
+  .quad.noob { bottom: 0; left: 0; background: rgba(255,194,74,.10); color: var(--q-noob); align-items: flex-end; }
+  .quad.char { bottom: 0; right: 0; background: rgba(255,74,224,.10); color: var(--q-char); align-items: flex-end; justify-content: flex-end; text-align: right; }
+  .axis-h, .axis-v { position: absolute; background: var(--line); }
+  .axis-h { left: 0; right: 0; top: 50%; height: 1px; }
+  .axis-v { top: 0; bottom: 0; left: 50%; width: 1px; }
+  .dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.25), 0 0 18px currentColor;
+    transition: left 900ms cubic-bezier(.2,.8,.2,1), top 900ms cubic-bezier(.2,.8,.2,1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot { transition: none; }
+  }
+  .axis-caption {
+    display: flex;
+    justify-content: space-between;
+    color: var(--dim);
+    font-size: 11px;
+    max-width: 420px;
+    margin: 8px auto 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .stats { margin: 0 0 26px; font-size: 13px; }
+  .stats .row { display: flex; gap: 12px; align-items: baseline; margin-bottom: 4px; flex-wrap: wrap; }
+  .stats .lbl { color: var(--dim); width: 15ch; flex-shrink: 0; }
+  .stats .bar { color: var(--phosphor); letter-spacing: 1px; }
+  .stats .val { color: var(--text); font-variant-numeric: tabular-nums; }
+
+  .copy-note { color: var(--dim); font-size: 12px; margin-top: 8px; min-height: 1.2em; }
+
+  footer {
+    margin-top: 56px;
+    color: var(--dim);
+    font-size: 12px;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <pre class="masthead" aria-label="Hacker Compass">
+                        ==Treta Inc.==
+
+        Volume 0x01, Issue 0x01, Phile #0x0f of 0x10
+
+|=-----------=[ H A C K E R   C O M P A S S ]=-----------=|
+|=--------=[ o quão hacker de verdade você é? ]=---------=|</pre>
+  <p class="tagline">baseado em uma treta real do X dot com, o everything app.<br>
+  <em>conhecimento deve ser livre — este teste também.</em></p>
+
+  <!-- INTRO -->
+  <section id="intro" class="intro">
+    <p class="prompt-line">$ ./hacker_compass --init</p>
+    <p>Você compra curso de R$ 1.997 em 12x ou acha que cobrar por conteúdo é
+    <em>publicamente vergonhoso</em>? Segue NDA ou posta a 0day no Discord
+    "pela cultura"? Responda 12 perguntas e descubra sua coordenada exata
+    na treta.</p>
+    <div class="axes-legend">
+      <div><b>eixo x:</b> conhecimento livre ←→ monetização</div>
+      <div><b>eixo y:</b> skill real ←→ pura postura</div>
+      <div class="lg-row">
+        <span class="chip raiz">HACKER</span>
+        <span class="chip prof">PROFISSIONAL DE SEC</span>
+        <span class="chip noob">NOOB</span>
+        <span class="chip char">CHARLATÃO</span>
+      </div>
+    </div>
+    <button class="btn-start" id="btn-start">INICIAR SCAN &gt;_</button>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="qmeta"><span id="qcount"></span><span>nmap -sV sua_alma</span></div>
+    <div class="progress" id="qprogress" aria-hidden="true"></div>
+    <h2 class="question" id="qtext"></h2>
+    <div class="answers" id="qanswers"></div>
+    <p class="hint">dica: as teclas numéricas também funcionam. como um hacker de verdade usaria.</p>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="hidden">
+    <p class="prompt-line" style="color: var(--dim);">$ cat /tmp/veredito.txt</p>
+    <p class="verdict-label" id="v-label">scan concluído. diagnóstico:</p>
+    <h2 class="verdict" id="v-title"></h2>
+    <p class="verdict-desc" id="v-desc"></p>
+
+    <div class="compass-box">
+      <div class="compass-grid">
+        <div class="quad raiz">Hacker</div>
+        <div class="quad prof">Profissional<br>de Sec</div>
+        <div class="quad noob">Noob</div>
+        <div class="quad char">Charlatão</div>
+        <div class="axis-h"></div>
+        <div class="axis-v"></div>
+        <div class="dot" id="dot" style="left:50%; top:50%;"></div>
+      </div>
+      <div class="axis-caption"><span>← conhecimento livre</span><span>monetização →</span></div>
+      <div class="axis-caption"><span>↑ skill real</span><span>postura ↓</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="row"><span class="lbl">livre/monetiza</span><span class="bar" id="bar-x"></span><span class="val" id="val-x"></span></div>
+      <div class="row"><span class="lbl">skill/postura</span><span class="bar" id="bar-y"></span><span class="val" id="val-y"></span></div>
+    </div>
+
+    <button class="btn-start" id="btn-link">COPIAR LINK (tira o print e vai postar)</button>
+    <p class="copy-note" id="copy-note"></p>
+    <button class="btn-ghost" id="btn-copy">copiar resultado em texto (ascii raiz)</button>
+    <button class="btn-ghost" id="btn-restart">rodar de novo (dessa vez sem mentir)</button>
+  </section>
+
+  <div class="rule">=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=</div>
+  <footer>
+    paródia. nenhum influencer de infosec foi ferido na produção deste teste.<br>
+    qualquer semelhança com tuítes reais é culpa dos tuítes reais.<br>
+    feito com claude. já gastei tempo demais com isso.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // dx: -livre  +monetiza | dy: +skill  -postura
+  var QUESTIONS = [
+    {
+      q: "Como você aprendeu o que você chama de “hacking”?",
+      a: [
+        { t: "Zines, IRC, labs e madrugadas lendo txt traduzido com dicionário.", dx: -2, dy: 2 },
+        { t: "Certificações e treinamentos que a empresa pagou. Tenho até crachá.", dx: 2, dy: 1 },
+        { t: "Vídeo no YouTube em 2x e muita fé.", dx: -1, dy: -2 },
+        { t: "Curso de R$ 1.997 em 12x que prometia “OSCP em 30 dias”.", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Vender curso de hacking é...",
+      a: [
+        { t: "Publicamente vergonhoso. Conhecimento deve ser livre.", dx: -2, dy: 0 },
+        { t: "Falácia genética! As coisas evoluem. Estruturar conteúdo custa caro.", dx: 2, dy: 0 },
+        { t: "Pode cobrar pelo lab e pelo 1:1. Pelo conteúdo, jamais. Princípios não se negociam.", dx: -2, dy: 1 },
+        { t: "Legítimo. Aliás, o meu tá com 50% de desconto. Últimas vagas (mentira).", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Você acha uma falha num programa de bug bounty. O que faz?",
+      a: [
+        { t: "Reporto, espero o fix e mostro todo o processo no meu servidor.", dx: -2, dy: 1 },
+        { t: "Reporto e sigo o NDA à risca. Escopo é escopo, contrato é contrato.", dx: 2, dy: 1 },
+        { t: "Guardo. Quem quiser saber, chega no privado com proposta.", dx: 1, dy: 2 },
+        { t: "Eu nunca achei uma falha. Mas tô quase. Sinto isso.", dx: 0, dy: -2 },
+        { t: "Posto print borrado no LinkedIn: “mais um dia protegendo a internet 🙏”.", dx: 1, dy: -2 }
+      ]
+    },
+    {
+      q: "A plataforma ameaça te punir por quebrar a política de disclosure:",
+      a: [
+        { t: "Publico mesmo assim. A falha já foi corrigida, o conhecimento é de todos.", dx: -2, dy: 0 },
+        { t: "Peço desculpas ao triager e releio a policy inteira.", dx: 2, dy: 0 },
+        { t: "Impossível me punirem. Pra quebrar a política eu precisaria ter achado algo.", dx: 0, dy: -2 },
+        { t: "Viro conteúdo: “FUI BANIDO DA HACKERONE (INJUSTIÇA?) — assista até o final”.", dx: 1, dy: -2 }
+      ]
+    },
+    {
+      q: "Qual o papel da IA no seu hacking?",
+      a: [
+        { t: "Ferramenta como outra qualquer. grep também não te faz hacker.", dx: 0, dy: 2 },
+        { t: "Rodei o Claude, achei meu primeiro BB, portanto sou hacker.", dx: -1, dy: -2 },
+        { t: "Uso a assinatura Max 20x. Que a empresa paga, óbvio.", dx: 2, dy: 1 },
+        { t: "“A IA vai roubar seu emprego. Garanta o seu na minha mentoria de Prompt Hacking.”", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Sexta-feira à noite. O que você tá fazendo?",
+      a: [
+        { t: "Engenharia reversa no firmware do roteador. Ninguém pediu, eu que quis.", dx: -1, dy: 2 },
+        { t: "Plantão de resposta a incidente. Hora extra paga em dobro.", dx: 2, dy: 1 },
+        { t: "Instalando o Kali pela terceira vez. Dessa vez vai.", dx: 0, dy: -2 },
+        { t: "Escrevendo tuítes calculados pra engajar meus seguidores. (Ou vibecodando um site-piada pra aliviar o clima.)", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "O que é a Phrack pra você?",
+      a: [
+        { t: "Leitura fundadora. Smashing the Stack for Fun and Profit mudou minha vida.", dx: -2, dy: 2 },
+        { t: "Li as clássicas, respeito muito. Hoje o tempo só dá pra papers e advisories.", dx: 1, dy: 1 },
+        { t: "Um pokémon?", dx: 0, dy: -2 },
+        { t: "Usei um trecho num slide do meu curso. Sem crédito, claro.", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Descreva seu setup:",
+      a: [
+        { t: "ThinkPad adesivado, Linux que compila até o cursor, tmux com 47 panes.", dx: -1, dy: 2 },
+        { t: "MacBook da firma com MDM, VPN corporativa e wallpaper padrão.", dx: 2, dy: 1 },
+        { t: "Kali no VirtualBox. Não abre desde 2024, mas tá instalado.", dx: 0, dy: -2 },
+        { t: "Ring light, microfone condensador e letreiro neon escrito HACKER.", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Certificações (OSCP, CEH, essas siglas):",
+      a: [
+        { t: "Papel não prova nada. Mostra teu código, teu CTF, teu writeup.", dx: -2, dy: 1 },
+        { t: "A OSCP abriu portas. O mercado funciona assim, fazer o quê.", dx: 2, dy: 1 },
+        { t: "Tô juntando pra fazer a CEH porque um influencer disse que é a melhor.", dx: 0, dy: -2 },
+        { t: "Vendo um preparatório pra uma certificação que eu mesmo não tenho.", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Seu primeiro exploit:",
+      a: [
+        { t: "Um buffer overflow num daemon obscuro. Não valia nada, mas era meu.", dx: -1, dy: 2 },
+        { t: "Num pentest com contrato assinado, virou relatório de 40 páginas.", dx: 2, dy: 2 },
+        { t: "Copiei do Exploit-DB e não rodou. Deve ser o firewall.", dx: 0, dy: -2 },
+        { t: "Meu maior exploit foi a página de vendas convertendo 3%.", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Te chamam de “referência do hacking”. Você:",
+      a: [
+        { t: "Desconfio na hora. Referência de verdade tá em silêncio, hackeando.", dx: -1, dy: 1 },
+        { t: "Agradeço e adiciono ao LinkedIn como “reconhecimento da comunidade”.", dx: 2, dy: -1 },
+        { t: "Desconverso na hora, mas por dentro é bom demais ser reconhecido.", dx: 0, dy: 1 },
+        { t: "Ninguém nunca me chamou de nada. Nem no grupo da família.", dx: -1, dy: -1 },
+        { t: "Eu mesmo me chamo. No meu site. Que vende meu curso.", dx: 2, dy: -2 }
+      ]
+    },
+    {
+      q: "Pra fechar: o que é um hacker?",
+      a: [
+        { t: "Alguém curioso o bastante pra abrir o que mandaram deixar fechado.", dx: -2, dy: 1 },
+        { t: "Um profissional de segurança. Mercado, escopo, contrato, entrega.", dx: 2, dy: 1 },
+        { t: "Aquele do Mr. Robot, né?", dx: 0, dy: -2 },
+        { t: "Uma persona com CPM excelente.", dx: 2, dy: -2 }
+      ]
+    }
+  ];
+
+  var VERDICTS = {
+    raiz: {
+      title: "HACKER 🏴",
+      color: "var(--q-raiz)",
+      desc: "Você postaria a 0day no seu Discord e chamaria isso de ética. Conhecimento deve ser livre, NDA é opressão e quem vende curso te bloqueou preventivamente. Se te banirem da HackerOne, o vendido não é você."
+    },
+    prof: {
+      title: "PROFISSIONAL DE SEC 👔",
+      color: "var(--q-prof)",
+      desc: "Você tem skill, NDA assinado, plano de saúde e uma opinião estruturada sobre falácias genéticas. O underground te respeita em segredo e te chama de vendido em público. O boleto agradece."
+    },
+    noob: {
+      title: "NOOB 🐣",
+      color: "var(--q-noob)",
+      desc: "Você nunca achou um bug, mas seus princípios são impecáveis. Defende o conhecimento livre com a paixão de quem ainda não terminou o primeiro lab do TryHackMe. Continue: todo hacker raiz já foi você."
+    },
+    char: {
+      title: "CHARLATÃO 🎩",
+      color: "var(--q-char)",
+      desc: "Link na bio, 12x sem juros, vagas limitadas (mentira). Seu último exploit foi no pixel de rastreamento da sua página de vendas. A cultura hacker te deve nada e ainda assim virou seu produto."
+    },
+    muro: {
+      title: "EM CIMA DO MURO 🧘",
+      color: "var(--text)",
+      desc: "Você deu like nos dois lados da treta. Equilíbrio admirável ou covardia estratégica — os historiadores decidirão. De qualquer forma: nenhum quadrante te reivindica."
+    }
+  };
+
+  var maxX = 0, maxY = 0;
+  QUESTIONS.forEach(function (q) {
+    var mx = 0, my = 0;
+    q.a.forEach(function (a) {
+      mx = Math.max(mx, Math.abs(a.dx));
+      my = Math.max(my, Math.abs(a.dy));
+    });
+    maxX += mx; maxY += my;
+  });
+
+  var idx = 0, sumX = 0, sumY = 0, done = false;
+  var $ = function (id) { return document.getElementById(id); };
+
+  $("btn-start").addEventListener("click", startQuiz);
+  $("btn-restart").addEventListener("click", function () {
+    idx = 0; sumX = 0; sumY = 0; done = false;
+    $("result").classList.add("hidden");
+    startQuiz();
+  });
+  $("btn-copy").addEventListener("click", copyResult);
+  $("btn-link").addEventListener("click", copyLink);
+
+  var PAGE_URL = "https://lude.rs/hacker-compass/";
+
+  function copyToClipboard(txt, okMsg) {
+    function ok() { $("copy-note").textContent = okMsg; }
+    function fail() {
+      $("copy-note").textContent = "seu browser bloqueou o clipboard. típico. copia na mão: " + PAGE_URL;
+    }
+    function legacy() {
+      var ta = document.createElement("textarea");
+      ta.value = txt;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        var done = document.execCommand("copy");
+        document.body.removeChild(ta);
+        done ? ok() : fail();
+      } catch (e) {
+        document.body.removeChild(ta);
+        fail();
+      }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(ok, legacy);
+    } else {
+      legacy();
+    }
+  }
+
+  function copyLink() {
+    var txt = PAGE_URL;
+    if (lastResult) {
+      var r = lastResult;
+      txt = "meu veredito no HACKER COMPASS: " + r.v.title + "\n" +
+        "livre/monetiza: " + (r.nx >= 0 ? "+" : "") + Math.round(r.nx * 10) +
+        " | skill/postura: " + (r.ny >= 0 ? "+" : "") + Math.round(r.ny * 10) + "\n" +
+        PAGE_URL;
+    }
+    copyToClipboard(txt, "link copiado. tira o print e vai postar.");
+  }
+
+  function startQuiz() {
+    $("intro").classList.add("hidden");
+    $("quiz").classList.remove("hidden");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    var q = QUESTIONS[idx];
+    $("qcount").textContent = "[ pergunta " + (idx + 1) + "/" + QUESTIONS.length + " ]";
+    var filled = Math.round((idx / QUESTIONS.length) * 24);
+    $("qprogress").textContent = "█".repeat(filled) + "░".repeat(24 - filled);
+    $("qtext").textContent = q.q;
+    var box = $("qanswers");
+    box.innerHTML = "";
+    q.a.forEach(function (ans, i) {
+      var b = document.createElement("button");
+      b.className = "answer";
+      b.innerHTML = '<span class="key">[' + (i + 1) + ']</span><span></span>';
+      b.lastChild.textContent = ans.t;
+      b.addEventListener("click", function () { pick(b, ans); });
+      box.appendChild(b);
+    });
+  }
+
+  var picking = false;
+  function pick(btn, ans) {
+    if (picking) return;
+    picking = true;
+    btn.classList.add("picked");
+    sumX += ans.dx;
+    sumY += ans.dy;
+    setTimeout(function () {
+      picking = false;
+      idx++;
+      if (idx < QUESTIONS.length) renderQuestion();
+      else showResult();
+    }, 260);
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if ($("quiz").classList.contains("hidden")) return;
+    var n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 9) {
+      var btns = $("qanswers").querySelectorAll(".answer");
+      if (btns[n - 1]) btns[n - 1].click();
+    }
+  });
+
+  var lastResult = null;
+
+  function showResult() {
+    done = true;
+    $("quiz").classList.add("hidden");
+    $("result").classList.remove("hidden");
+
+    var nx = sumX / maxX;  // -1..1
+    var ny = sumY / maxY;  // -1..1  (+ = skill)
+    var key;
+    if (Math.abs(nx) < 0.12 && Math.abs(ny) < 0.12) key = "muro";
+    else if (nx < 0 && ny >= 0) key = "raiz";
+    else if (nx >= 0 && ny >= 0) key = "prof";
+    else if (nx < 0) key = "noob";
+    else key = "char";
+
+    var v = VERDICTS[key];
+    lastResult = { key: key, v: v, nx: nx, ny: ny };
+
+    $("v-title").textContent = v.title;
+    $("v-title").style.color = v.color;
+    $("v-desc").textContent = v.desc;
+
+    var dot = $("dot");
+    dot.style.color = v.color;
+    // start from center, then animate out
+    dot.style.left = "50%";
+    dot.style.top = "50%";
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        dot.style.left = (50 + nx * 45) + "%";
+        dot.style.top = (50 - ny * 45) + "%";
+      });
+    });
+
+    renderBar("bar-x", "val-x", nx, "livre", "monetiza");
+    renderBar("bar-y", "val-y", ny, "postura", "skill");
+    $("copy-note").textContent = "";
+  }
+
+  function renderBar(barId, valId, n, negLabel, posLabel) {
+    var slots = 21;
+    var pos = Math.round((n + 1) / 2 * (slots - 1));
+    var s = "";
+    for (var i = 0; i < slots; i++) s += (i === pos ? "█" : (i === Math.floor(slots / 2) ? "|" : "·"));
+    $(barId).textContent = s;
+    var side = n < 0 ? negLabel : posLabel;
+    $(valId).textContent = (n >= 0 ? "+" : "") + Math.round(n * 10) + " (" + side + ")";
+  }
+
+  function asciiCompass(nx, ny) {
+    var size = 9;
+    var cx = Math.max(0, Math.min(size - 1, Math.round((nx + 1) / 2 * (size - 1))));
+    var cy = Math.max(0, Math.min(size - 1, Math.round((1 - ny) / 2 * (size - 1))));
+    var lines = [];
+    for (var y = 0; y < size; y++) {
+      var row = "";
+      for (var x = 0; x < size; x++) {
+        if (x === cx && y === cy) row += "X";
+        else if (y === Math.floor(size / 2) && x === Math.floor(size / 2)) row += "+";
+        else if (y === Math.floor(size / 2)) row += "-";
+        else if (x === Math.floor(size / 2)) row += "|";
+        else row += "·";
+      }
+      lines.push(row);
+    }
+    return lines.join("\n");
+  }
+
+  function copyResult() {
+    if (!lastResult) return;
+    var r = lastResult;
+    var txt = "== HACKER COMPASS ==\n" +
+      "veredito: " + r.v.title + "\n\n" +
+      asciiCompass(r.nx, r.ny) + "\n\n" +
+      "livre/monetiza: " + (r.nx >= 0 ? "+" : "") + Math.round(r.nx * 10) +
+      " | skill/postura: " + (r.ny >= 0 ? "+" : "") + Math.round(r.ny * 10) + "\n" +
+      "faça o teste você também. conhecimento deve ser livre.\n" + PAGE_URL;
+    copyToClipboard(txt, "copiado em ascii. agora vai lá quotar alguém.");
+  }
+})();
+</script>
+
+</body>
+</html>
